@@ -3,9 +3,12 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { ErrorModal } from './ErrorModal';
+import { AuthModal } from './AuthModal';
+import { LeaderboardModal } from './LeaderboardModal';
 import { GameState, Difficulty, DIFFICULTY_CONFIGS, CustomGameConfig } from '../types/game';
 import { cn } from '../lib/utils';
-import { RotateCcw, BarChart3, Settings, ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
+import { RotateCcw, BarChart3, Settings, ChevronUp, ChevronDown, Maximize2, Minimize2, Trophy, User, LogOut } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 interface GameHeaderProps {
   gameState: GameState;
@@ -61,6 +64,11 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Auth and leaderboard state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   const validateCustomConfig = (config: CustomGameConfig): string | null => {
     if (config.width < 5 || config.width > 99) return 'Width must be between 5 and 99';
@@ -181,8 +189,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           </div>
 
           {/* Right: Actions & Controls */}
-          <div className="flex flex-col space-y-2">
-            {/* Top row: Main actions */}
+          <div className="flex flex-col space-y-2">            {/* Top row: Main actions */}
             <div className="flex items-center space-x-2">
               <Button
                 onClick={onRestart}
@@ -203,6 +210,15 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
                 <span className="hidden md:inline">Stats</span>
               </Button>
               <Button
+                onClick={() => setShowLeaderboard(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                <Trophy className="w-4 h-4" />
+                <span className="hidden md:inline">Leaderboard</span>
+              </Button>
+              <Button
                 onClick={onShowSettings}
                 variant="outline"
                 size="sm"
@@ -212,9 +228,36 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
                 <span className="hidden md:inline">Settings</span>
               </Button>
             </div>
-            
-            {/* Bottom row: View controls */}
+              {/* Bottom row: View controls & Auth */}
             <div className="flex items-center space-x-2">
+              {/* Authentication buttons */}
+              {isAuthenticated ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-600 hidden lg:inline">
+                    Hi, {user?.username}
+                  </span>
+                  <Button
+                    onClick={logout}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-1"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden lg:inline">Logout</span>
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setShowAuthModal(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden lg:inline">Login</span>
+                </Button>
+              )}
+              
               <Button
                 onClick={toggleFullscreen}
                 variant="outline"
@@ -399,14 +442,24 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Error Modal */}
+      )}      {/* Error Modal */}
       <ErrorModal
         isOpen={showError}
         onClose={() => setShowError(false)}
         title="Invalid Custom Game Configuration"
         message={errorMessage}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+
+      {/* Leaderboard Modal */}
+      <LeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
       />
     </div>
   );

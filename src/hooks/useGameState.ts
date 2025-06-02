@@ -21,6 +21,7 @@ import {
 import { updateGameStats, getUserPreferences } from '../lib/storage';
 import { soundManager } from '../lib/sounds';
 import  { compareGenerationStrategies }  from '../lib/gameLogic';
+import { useAuth } from './useAuth';
 export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER) => {
   const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty);
   const [gameState, setGameState] = useState<GameState>(() =>
@@ -28,6 +29,65 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
   );
   const [timeElapsed, setTimeElapsed] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    // Auth hook for score submission
+  const { isAuthenticated, user } = useAuth();
+
+  // Function to submit score to leaderboard
+  const submitScore = useCallback(async (gameWon: boolean, timeTaken: number, gameDifficulty: Difficulty, gameConfig: any) => {
+    if (!isAuthenticated || !user || !gameWon || gameDifficulty === Difficulty.CUSTOM) {
+      return; // Only submit scores for authenticated users on non-custom games when they win
+    }
+
+    try {
+      // Calculate score (lower time = higher score)
+      const maxTime = 999; // Maximum reasonable time in seconds
+      const baseScore = Math.max(0, maxTime - timeTaken);
+      
+      // Difficulty multipliers
+      const difficultyMultipliers = {
+        [Difficulty.BEGINNER]: 1,
+        [Difficulty.INTERMEDIATE]: 2,
+        [Difficulty.EXPERT]: 3,
+        [Difficulty.MASTER]: 4,
+        [Difficulty.INSANE]: 5,
+        [Difficulty.EXTREME]: 6,
+      };
+      
+      const multiplier = difficultyMultipliers[gameDifficulty] || 1;
+      const finalScore = Math.round(baseScore * multiplier);      // Get auth token from cookies
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('auth_token='))
+        ?.split('=')[1];
+
+      if (!token) {
+        console.error('No auth token found');
+        return;
+      }
+
+      const response = await fetch('/api/leaderboard/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          difficulty: gameDifficulty,
+          timeElapsed: timeTaken,
+          score: finalScore,
+          config: gameConfig,
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Score submitted successfully!');
+      } else {
+        console.error('Failed to submit score:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error submitting score:', error);
+    }
+  }, [isAuthenticated, user]);
 
   // Initialize sound settings
   useEffect(() => {
@@ -125,8 +185,7 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
         if (difficulty !== Difficulty.CUSTOM) {
           const difficultyKey = difficulty as 'beginner' | 'intermediate' | 'expert' | 'master' | 'insane' | 'extreme';
           updateGameStats(difficultyKey, false, timeElapsed);
-        }
-      } else if (checkWinCondition(newGrid)) {
+        }      } else if (checkWinCondition(newGrid)) {
         newStatus = GameStatus.WON;
         soundManager.gameWin();
           // Update statistics for win
@@ -134,6 +193,9 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
           const difficultyKey = difficulty as 'beginner' | 'intermediate' | 'expert' | 'master' | 'insane' | 'extreme';
           updateGameStats(difficultyKey, true, timeElapsed);
         }
+        
+        // Submit score to leaderboard
+        submitScore(true, timeElapsed, difficulty, prevState.config);
       } else {
         // Regular cell reveal sound
         soundManager.cellReveal();
@@ -149,10 +211,9 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
           timeElapsed: timeElapsed,
           flagsUsed: getFlagsUsed(newGrid),
           cellsRevealed: getCellsRevealed(newGrid),
-        },
-      };
+        },      };
     });
-  }, [timeElapsed, difficulty]);
+  }, [timeElapsed, difficulty, submitScore]);
   const handleCellRightClick = useCallback((x: number, y: number) => {
     setGameState(prevState => {
       if (prevState.status === GameStatus.WON || prevState.status === GameStatus.LOST) {

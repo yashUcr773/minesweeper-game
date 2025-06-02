@@ -81,3 +81,53 @@ export const CUSTOM_GAME_CONSTRAINTS: CustomGameConstraints = {
   minMines: 1,
   maxMinePercentage: 80 // Maximum 80% of cells can be mines
 };
+
+// User Authentication Types
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  lastActive: string;
+}
+
+export interface AuthUser extends User {
+  token: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface SignupCredentials {
+  username: string;
+  email: string;
+  password: string;
+}
+
+// Leaderboard Types
+export interface LeaderboardEntry {
+  id: string;
+  userId: string;
+  username: string;
+  difficulty: Difficulty;
+  timeElapsed: number;
+  score: number;
+  completedAt: string;
+  config: GameConfig;
+}
+
+export interface LeaderboardFilters {
+  difficulty?: Difficulty;
+  timeRange?: 'day' | 'week' | 'month' | 'all';
+  limit?: number;
+}
+
+export interface LeaderboardStats {
+  totalGames: number;
+  bestTime: number;
+  averageTime: number;
+  winRate: number;
+  favoriteDifficulty: Difficulty;
+}
