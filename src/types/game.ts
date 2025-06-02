@@ -5,7 +5,10 @@ export interface Cell {
   isMine: boolean;
   isRevealed: boolean;
   isFlagged: boolean;
+  isFalseFlag: boolean; // Changed from optional to required
   adjacentMines: number;
+  isExploding?: boolean; // Animation state for bomb explosions
+  explosionDelay?: number; // Delay before this bomb explodes (in ms)
 }
 
 export interface GameConfig {

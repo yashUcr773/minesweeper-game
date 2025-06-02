@@ -16,6 +16,7 @@ import {
   toggleFlag,
   checkWinCondition,
   revealAllMines,
+  revealAllMinesWithAnimation,
   getFlagsUsed,
   getCellsRevealed,
 } from '../lib/gameLogic';
@@ -120,7 +121,7 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
       const clickedCell = newGrid[y][x];      // Check for game over conditions
       if (clickedCell.isMine) {
         newStatus = GameStatus.LOST;
-        newGrid = revealAllMines(newGrid);
+        newGrid = revealAllMinesWithAnimation(newGrid, x, y, 150); // 150ms delay between explosions
         soundManager.gameLoss();
           // Update statistics for loss
         if (difficulty !== Difficulty.CUSTOM) {
@@ -178,8 +179,15 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
           flagsUsed: getFlagsUsed(newGrid),
         },
       };
-    });
+    });  }, []);
+  // Function to update grid for animations
+  const updateGrid = useCallback((newGridOrUpdater: import('../types/game').Cell[][] | ((prevGrid: import('../types/game').Cell[][]) => import('../types/game').Cell[][])) => {
+    setGameState(prevState => ({
+      ...prevState,
+      grid: typeof newGridOrUpdater === 'function' ? newGridOrUpdater(prevState.grid) : newGridOrUpdater,
+    }));
   }, []);
+
   return {
     gameState,
     difficulty,
@@ -189,5 +197,6 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
     startCustomGame,
     handleCellLeftClick,
     handleCellRightClick,
+    updateGrid,
   };
 };

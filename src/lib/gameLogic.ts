@@ -8,15 +8,17 @@ export function createEmptyGrid(width: number, height: number): Cell[][] {
   
   for (let y = 0; y < height; y++) {
     const row: Cell[] = [];
-    for (let x = 0; x < width; x++) {
-      row.push({
+    for (let x = 0; x < width; x++) {      row.push({
         id: `${x}-${y}`,
         x,
         y,
         isMine: false,
         isRevealed: false,
         isFlagged: false,
-        adjacentMines: 0
+        isFalseFlag: false,
+        adjacentMines: 0,
+        isExploding: false,
+        explosionDelay: 0
       });
     }
     grid.push(row);
@@ -471,6 +473,8 @@ export function toggleFlag(grid: Cell[][], x: number, y: number): Cell[][] {
   
   if (!cell.isRevealed) {
     cell.isFlagged = !cell.isFlagged;
+    // Reset false flag status when toggling flag
+    cell.isFalseFlag = false;
   }
   
   return newGrid;
@@ -497,9 +501,59 @@ export function revealAllMines(grid: Cell[][]): Cell[][] {
   return grid.map(row =>
     row.map(cell => ({
       ...cell,
-      isRevealed: cell.isRevealed || cell.isMine
+      isRevealed: cell.isRevealed || cell.isMine,
+      isFalseFlag: cell.isFlagged && !cell.isMine // Mark false flags
     }))
   );
+}
+
+/**
+ * Reveals all mines with sequential animation (used when game is lost)
+ */
+export function revealAllMinesWithAnimation(
+  grid: Cell[][], 
+  triggeredMineX: number, 
+  triggeredMineY: number,
+  animationDelay: number = 100
+): Cell[][] {
+  const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+  
+  // Find all mine positions
+  const mines: { x: number; y: number }[] = [];
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[0].length; x++) {
+      if (grid[y][x].isMine) {
+        mines.push({ x, y });
+      }
+    }
+  }
+  
+  // Sort mines by distance from triggered mine for cascade effect
+  const triggeredMine = { x: triggeredMineX, y: triggeredMineY };
+  mines.sort((a, b) => {
+    const distA = Math.abs(a.x - triggeredMine.x) + Math.abs(a.y - triggeredMine.y);
+    const distB = Math.abs(b.x - triggeredMine.x) + Math.abs(b.y - triggeredMine.y);
+    return distA - distB;
+  });
+  
+  // Set explosion delays and reveal mines
+  mines.forEach((mine, index) => {
+    const cell = newGrid[mine.y][mine.x];
+    cell.isRevealed = true;
+    cell.explosionDelay = index * animationDelay;
+    cell.isExploding = false; // Will be set to true when animation starts
+  });
+  
+  // Mark false flags
+  newGrid.forEach(row => {
+    row.forEach(cell => {
+      if (cell.isFlagged && !cell.isMine) {
+        cell.isFalseFlag = true;
+      }
+    });
+  });
+  
+  return newGrid;
 }
 
 /**

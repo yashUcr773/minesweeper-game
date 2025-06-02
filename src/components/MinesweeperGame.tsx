@@ -6,6 +6,7 @@ import { GameHeader } from './GameHeader';
 import { StatsModal } from './StatsModal';
 import { SettingsModal } from './SettingsModal';
 import { useGameState } from '../hooks/useGameState';
+import { useBombAnimation } from '../hooks/useBombAnimation';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import { Difficulty } from '../types/game';
 
@@ -19,7 +20,7 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   
   const { preferences, updatePreferences } = useUserPreferences();
-    const {
+  const {
     gameState,
     difficulty,
     timeElapsed,
@@ -28,7 +29,11 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
     startCustomGame,
     handleCellLeftClick,
     handleCellRightClick,
+    updateGrid,
   } = useGameState(initialDifficulty);
+
+  // Initialize bomb animation
+  useBombAnimation(gameState.grid, gameState.status, updateGrid);
 
   // Prevent right-click context menu on the game area
   useEffect(() => {

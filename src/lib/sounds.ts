@@ -63,11 +63,24 @@ export class SoundManager {
     setTimeout(() => this.playTone(784, 0.2, 'sine', 0.1), 200);   // G
     setTimeout(() => this.playTone(1047, 0.4, 'sine', 0.1), 300);  // C
   }
-
   gameLoss() {
     // Explosion sound
     this.playTone(150, 0.3, 'sawtooth', 0.15);
     setTimeout(() => this.playTone(100, 0.4, 'sawtooth', 0.1), 100);
+  }
+  bombExplosion() {
+    // Enhanced bomb explosion sound with multiple layers for realism
+    // Initial blast - deep rumble
+    this.playTone(80, 0.25, 'sawtooth', 0.15);
+    
+    // Mid-range explosion crack
+    setTimeout(() => this.playTone(250, 0.15, 'square', 0.12), 20);
+    
+    // High-frequency debris/shrapnel sound
+    setTimeout(() => this.playTone(800, 0.08, 'triangle', 0.06), 40);
+    
+    // Final rumble decay
+    setTimeout(() => this.playTone(60, 0.2, 'sawtooth', 0.08), 80);
   }
 
   gameStart() {

@@ -42,7 +42,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         }}
       >
         {grid.map((row, y) =>
-          row.map((cell, x) => (            <Cell
+          row.map((cell, x) => (            
+          <Cell
               key={cell.id}
               cell={cell}
               onLeftClick={onCellLeftClick}
