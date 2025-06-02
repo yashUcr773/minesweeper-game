@@ -50,19 +50,6 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
     }
   };
 
-  const getStatusMessage = () => {
-    switch (status) {
-      case 'won':
-        return 'Congratulations! You won!';
-      case 'lost':
-        return 'Game Over! Try again!';
-      case 'playing':
-        return 'Game in progress...';
-      default:
-        return 'Click a cell to start!';
-    }
-  };
-
   // Custom game state
   const [showCustomGame, setShowCustomGame] = useState(false);
   const [customConfig, setCustomConfig] = useState({
@@ -111,6 +98,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
         setIsFullscreen(false);
       }
     } catch (error) {
+      console.log("🚀 ~ toggleFullscreen ~ error:", error)
       console.log('Fullscreen not supported or blocked');
     }
   };

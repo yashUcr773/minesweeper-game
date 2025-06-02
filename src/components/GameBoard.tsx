@@ -41,8 +41,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           gridTemplateRows: `repeat(${config.height}, 1fr)`,
         }}
       >
-        {grid.map((row, y) =>
-          row.map((cell, x) => (            
+        {grid.map((row) =>
+          row.map((cell) => (            
           <Cell
               key={cell.id}
               cell={cell}

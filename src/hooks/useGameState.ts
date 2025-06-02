@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   GameState,
-  GameConfig,
   Difficulty,
   DIFFICULTY_CONFIGS,
   GameStatus,
@@ -15,14 +14,13 @@ import {
   revealCell,
   toggleFlag,
   checkWinCondition,
-  revealAllMines,
   revealAllMinesWithAnimation,
   getFlagsUsed,
   getCellsRevealed,
 } from '../lib/gameLogic';
 import { updateGameStats, getUserPreferences } from '../lib/storage';
 import { soundManager } from '../lib/sounds';
-
+import  { compareGenerationStrategies }  from '../lib/gameLogic';
 export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER) => {
   const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty);
   const [gameState, setGameState] = useState<GameState>(() =>
@@ -107,7 +105,7 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
             localStorage.getItem('minesweeper-debug-comparison') === 'true';
           
           if (debugEnabled) {
-            const { compareGenerationStrategies } = require('../lib/gameLogic');
+            
             console.log('🔍 Running detailed mine generation comparison...');
             compareGenerationStrategies(prevState.grid, prevState.config, x, y, 5);
           } else {

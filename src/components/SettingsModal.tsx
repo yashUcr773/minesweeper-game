@@ -3,7 +3,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { UserPreferences } from '../lib/storage';
-import { Difficulty, DIFFICULTY_CONFIGS } from '../types/game';
+import { DIFFICULTY_CONFIGS } from '../types/game';
 
 interface SettingsModalProps {
   isOpen: boolean;

@@ -705,13 +705,6 @@ interface GenerationStrategy {
   };
 }
 
-interface ConstraintZones {
-  available: { x: number; y: number }[];
-  forbidden: { x: number; y: number }[];
-  preferred: { x: number; y: number }[];
-  weights: Map<string, number>;
-}
-
 /**
  * Helper function to shuffle an array using Fisher-Yates algorithm
  */
@@ -1066,7 +1059,6 @@ function calculateOptimalDistribution(totalMines: number, zones: any): { [key: s
   // Distribute mines with preference for center, then edges, then corners
   const centerRatio = 0.5;
   const edgeRatio = 0.35;
-  const cornerRatio = 0.15;
   
   distribution.center = Math.floor(totalMines * centerRatio);
   distribution.edges = Math.floor(totalMines * edgeRatio);

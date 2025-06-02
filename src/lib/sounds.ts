@@ -86,6 +86,43 @@ export class SoundManager {
   gameStart() {
     this.playTone(440, 0.1, 'sine', 0.08);
   }
+
+  // Extended victory fanfare for the modal
+  modalVictoryFanfare() {
+    if (!this.enabled) return;
+    
+    // Main victory melody
+    setTimeout(() => this.playTone(523, 0.3, 'sine', 0.1), 0);     // C
+    setTimeout(() => this.playTone(659, 0.3, 'sine', 0.1), 150);   // E
+    setTimeout(() => this.playTone(784, 0.3, 'sine', 0.1), 300);   // G
+    setTimeout(() => this.playTone(1047, 0.5, 'sine', 0.1), 450);  // C
+    
+    // Harmony layer
+    setTimeout(() => this.playTone(392, 0.2, 'triangle', 0.05), 0);   // G
+    setTimeout(() => this.playTone(494, 0.2, 'triangle', 0.05), 150); // B
+    setTimeout(() => this.playTone(587, 0.2, 'triangle', 0.05), 300); // D
+    setTimeout(() => this.playTone(785, 0.3, 'triangle', 0.05), 450); // G
+    
+    // Celebration sparkles
+    setTimeout(() => this.playTone(1568, 0.1, 'sine', 0.03), 600);
+    setTimeout(() => this.playTone(1760, 0.1, 'sine', 0.03), 650);
+    setTimeout(() => this.playTone(1975, 0.1, 'sine', 0.03), 700);
+  }
+
+  // Modal defeat sound
+  modalDefeatSound() {
+    if (!this.enabled) return;
+    
+    // Descending defeat melody
+    setTimeout(() => this.playTone(440, 0.4, 'sawtooth', 0.1), 0);   // A
+    setTimeout(() => this.playTone(392, 0.4, 'sawtooth', 0.1), 200); // G
+    setTimeout(() => this.playTone(349, 0.4, 'sawtooth', 0.1), 400); // F
+    setTimeout(() => this.playTone(293, 0.6, 'sawtooth', 0.1), 600); // D
+    
+    // Deep rumble
+    setTimeout(() => this.playTone(110, 0.5, 'sawtooth', 0.08), 0);
+    setTimeout(() => this.playTone(98, 0.6, 'sawtooth', 0.06), 300);
+  }
 }
 
 // Singleton instance

@@ -5,6 +5,7 @@ import { GameBoard } from './GameBoard';
 import { GameHeader } from './GameHeader';
 import { StatsModal } from './StatsModal';
 import { SettingsModal } from './SettingsModal';
+import { WinLossModal } from './WinLossModal';
 import { useGameState } from '../hooks/useGameState';
 import { useBombAnimation } from '../hooks/useBombAnimation';
 import { useUserPreferences } from '../hooks/useUserPreferences';
@@ -18,6 +19,7 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
   initialDifficulty = Difficulty.BEGINNER,
 }) => {  const [showStats, setShowStats] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWinLoss, setShowWinLoss] = useState(false);
   
   const { preferences, updatePreferences } = useUserPreferences();
   const [focusMode, setFocusMode] = useState(false); // Will be initialized from preferences
@@ -80,6 +82,26 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [restartGame, focusMode, toggleFocusMode]);
+
+  // Show win/loss modal when game ends
+  useEffect(() => {
+    if (gameState.status === 'won' || gameState.status === 'lost') {
+      // Small delay to allow bomb animations to complete
+      const timer = setTimeout(() => {
+        setShowWinLoss(true);
+      }, gameState.status === 'lost' ? 1500 : 500); // Longer delay for loss to show bomb animations
+      
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.status]);
+
+  // Reset win/loss modal when game restarts
+  useEffect(() => {
+    if (gameState.status === 'ready' || gameState.status === 'playing') {
+      setShowWinLoss(false);
+    }
+  }, [gameState.status]);
+
   return (
     <div className={`minesweeper-game min-h-screen transition-all duration-300 ${
       focusMode 
@@ -115,7 +137,7 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
               Find all mines without detonating them! Left click to reveal, right click to flag.
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Press 'R' to restart the game anytime
+              Press &apos;R&apos; to restart the game anytime
             </p>
           </div>
         )}        {/* Game Header - Simplified in focus mode */}
@@ -177,7 +199,7 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
               <div>
                 <h4 className="font-semibold text-gray-800 mb-2">🎯 Objective:</h4>
                 <ul className="space-y-1">
-                  <li>• Reveal all cells that don't contain mines</li>
+                  <li>• Reveal all cells that don&apos;t contain mines</li>
                   <li>• Use numbers to deduce mine locations</li>
                   <li>• Flag suspected mine locations</li>
                 </ul>
@@ -199,17 +221,35 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
           <div className="text-center mt-8 text-gray-500 text-sm">
             <p>Classic Minesweeper Game • Built with Next.js & TypeScript</p>
           </div>
-        )}
-
-        {/* Modals */}
+        )}        {/* Modals */}
         <StatsModal 
           isOpen={showStats} 
           onClose={() => setShowStats(false)} 
-        />        <SettingsModal 
+        />
+
+        <SettingsModal 
           isOpen={showSettings} 
           onClose={() => setShowSettings(false)}
           preferences={preferences || { preferredDifficulty: 'BEGINNER', soundEnabled: true, colorBlindMode: false, showTimer: true }}
           onPreferencesChange={updatePreferences}
+        />        <WinLossModal
+          isOpen={showWinLoss}
+          onClose={() => setShowWinLoss(false)}
+          gameState={gameState}
+          difficulty={difficulty}
+          timeElapsed={timeElapsed}
+          onRestart={() => {
+            setShowWinLoss(false);
+            restartGame();
+          }}
+          onShowStats={() => {
+            setShowWinLoss(false);
+            setShowStats(true);
+          }}
+          onChangeDifficulty={(newDifficulty) => {
+            setShowWinLoss(false);
+            changeDifficulty(newDifficulty);
+          }}
         />
       </div>
     </div>
