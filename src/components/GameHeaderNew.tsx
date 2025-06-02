@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { ErrorModal } from './ErrorModal';
 import { GameState, Difficulty, DIFFICULTY_CONFIGS, CustomGameConfig } from '../types/game';
 import { cn } from '../lib/utils';
-import { RotateCcw, BarChart3, Settings, ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
+import { RotateCcw, BarChart3, Settings, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface GameHeaderProps {
   gameState: GameState;
@@ -73,7 +73,6 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const validateCustomConfig = (config: CustomGameConfig): string | null => {
     if (config.width < 5 || config.width > 99) return 'Width must be between 5 and 99';
@@ -100,30 +99,6 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
       setShowCustomGame(false);
     }
   };
-
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    } catch (error) {
-      console.log('Fullscreen not supported or blocked');
-    }
-  };
-
-  // Listen for fullscreen changes
-  React.useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   return (
     <div className="bg-white rounded-lg shadow-lg mb-4">
@@ -157,7 +132,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           </p>
         </div>
 
-        {/* Right: Quick Actions & Controls */}
+        {/* Right: Quick Actions & Collapse Toggle */}
         <div className="flex items-center space-x-2">
           <Button
             onClick={onShowStats}
@@ -176,16 +151,6 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           >
             <Settings className="w-4 h-4" />
             <span className="hidden sm:inline">Settings</span>
-          </Button>
-          <Button
-            onClick={toggleFullscreen}
-            variant="outline"
-            size="sm"
-            className="flex items-center space-x-1"
-            title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            <span className="hidden lg:inline">{isFullscreen ? "Exit" : "Full"}</span>
           </Button>
           <Button
             onClick={() => setIsCollapsed(!isCollapsed)}

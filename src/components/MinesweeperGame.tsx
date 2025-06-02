@@ -19,13 +19,13 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   
   const { preferences, updatePreferences } = useUserPreferences();
-  
-  const {
+    const {
     gameState,
     difficulty,
     timeElapsed,
     restartGame,
     changeDifficulty,
+    startCustomGame,
     handleCellLeftClick,
     handleCellRightClick,
   } = useGameState(initialDifficulty);
@@ -73,6 +73,7 @@ export const MinesweeperGame: React.FC<MinesweeperGameProps> = ({
           difficulty={difficulty}
           onRestart={restartGame}
           onDifficultyChange={changeDifficulty}
+          onCustomGame={startCustomGame}
           onShowStats={() => setShowStats(true)}
           onShowSettings={() => setShowSettings(true)}
           timeElapsed={timeElapsed}

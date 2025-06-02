@@ -7,6 +7,7 @@ import {
   Difficulty,
   DIFFICULTY_CONFIGS,
   GameStatus,
+  CustomGameConfig,
 } from '../types/game';
 import {
   createInitialGameState,
@@ -64,11 +65,20 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
     }
     soundManager.gameStart();
   }, [difficulty]);
-
   const changeDifficulty = useCallback((newDifficulty: Difficulty) => {
     setDifficulty(newDifficulty);
     const config = DIFFICULTY_CONFIGS[newDifficulty];
     setGameState(createInitialGameState(config));
+    setTimeElapsed(0);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const startCustomGame = useCallback((customConfig: CustomGameConfig) => {
+    setDifficulty(Difficulty.CUSTOM);
+    setGameState(createInitialGameState(customConfig));
     setTimeElapsed(0);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -112,19 +122,17 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
         newStatus = GameStatus.LOST;
         newGrid = revealAllMines(newGrid);
         soundManager.gameLoss();
-        
-        // Update statistics for loss
+          // Update statistics for loss
         if (difficulty !== Difficulty.CUSTOM) {
-          const difficultyKey = difficulty as 'beginner' | 'intermediate' | 'expert';
+          const difficultyKey = difficulty as 'beginner' | 'intermediate' | 'expert' | 'master' | 'insane' | 'extreme';
           updateGameStats(difficultyKey, false, timeElapsed);
         }
       } else if (checkWinCondition(newGrid)) {
         newStatus = GameStatus.WON;
         soundManager.gameWin();
-        
-        // Update statistics for win
+          // Update statistics for win
         if (difficulty !== Difficulty.CUSTOM) {
-          const difficultyKey = difficulty as 'beginner' | 'intermediate' | 'expert';
+          const difficultyKey = difficulty as 'beginner' | 'intermediate' | 'expert' | 'master' | 'insane' | 'extreme';
           updateGameStats(difficultyKey, true, timeElapsed);
         }
       } else {
@@ -172,13 +180,13 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
       };
     });
   }, []);
-
   return {
     gameState,
     difficulty,
     timeElapsed,
     restartGame,
     changeDifficulty,
+    startCustomGame,
     handleCellLeftClick,
     handleCellRightClick,
   };

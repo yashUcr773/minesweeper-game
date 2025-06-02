@@ -92,9 +92,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="text-sm text-gray-600">Total Play Time</div>
           </div>
-        </div>
-
-        {/* Best Times */}
+        </div>        {/* Best Times */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <Target className="w-5 h-5 mr-2 text-blue-500" />
@@ -112,6 +110,18 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
             <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
               <span className="font-medium">Expert (30×16)</span>
               <span className="text-red-600 font-mono">{formatTime(stats.bestTimes.expert)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
+              <span className="font-medium">Master (40×20)</span>
+              <span className="text-purple-600 font-mono">{formatTime(stats.bestTimes.master)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
+              <span className="font-medium">Insane (50×25)</span>
+              <span className="text-pink-600 font-mono">{formatTime(stats.bestTimes.insane)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
+              <span className="font-medium">Extreme (60×30)</span>
+              <span className="text-red-800 font-mono">{formatTime(stats.bestTimes.extreme)}</span>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { UserPreferences } from '../lib/storage';
+import { Difficulty, DIFFICULTY_CONFIGS } from '../types/game';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -18,6 +19,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onPreferencesChange,
 }) => {
   if (!isOpen) return null;
+
+  const handlePreferredDifficultyChange = (difficulty: string) => {
+    onPreferencesChange({
+      ...preferences,
+      preferredDifficulty: difficulty,
+    });
+  };
 
   const handleSoundToggle = () => {
     onPreferencesChange({
@@ -52,9 +60,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             ×
           </button>
-        </div>
+        </div>        <div className="space-y-4">
+          <div>
+            <label htmlFor="difficulty-select" className="block text-gray-700 font-medium mb-2">
+              Preferred Difficulty
+            </label>
+            <select
+              id="difficulty-select"
+              value={preferences.preferredDifficulty}
+              onChange={(e) => handlePreferredDifficultyChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {Object.entries(DIFFICULTY_CONFIGS).map(([diff, config]) => {
+                if (diff === 'custom') return null;
+                
+                return (
+                  <option key={diff} value={diff}>
+                    {diff.charAt(0).toUpperCase() + diff.slice(1)} ({config.width}×{config.height}, {config.mines} mines)
+                  </option>
+                );
+              })}
+            </select>
+          </div>
 
-        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label htmlFor="sound-toggle" className="text-gray-700 font-medium">
               Sound Effects

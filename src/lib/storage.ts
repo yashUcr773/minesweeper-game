@@ -8,6 +8,9 @@ export interface GameStats {
     beginner: number | null;
     intermediate: number | null;
     expert: number | null;
+    master: number | null;
+    insane: number | null;
+    extreme: number | null;
   };
   totalPlayTime: number;
 }
@@ -50,7 +53,7 @@ export function saveGameStats(stats: GameStats): void {
 }
 
 export function updateGameStats(
-  difficulty: 'beginner' | 'intermediate' | 'expert',
+  difficulty: 'beginner' | 'intermediate' | 'expert' | 'master' | 'insane' | 'extreme',
   won: boolean,
   timeElapsed: number
 ): void {
@@ -104,11 +107,14 @@ function getDefaultStats(): GameStats {
     gamesPlayed: 0,
     gamesWon: 0,
     gamesLost: 0,
-    bestTimes: {
-      beginner: null,
-      intermediate: null,
-      expert: null,
-    },
+  bestTimes: {
+    beginner: null,
+    intermediate: null,
+    expert: null,
+    master: null,
+    insane: null,
+    extreme: null,
+  },
     totalPlayTime: 0,
   };
 }
