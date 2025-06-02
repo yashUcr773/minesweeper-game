@@ -82,12 +82,27 @@ export const useGameState = (initialDifficulty: Difficulty = Difficulty.BEGINNER
       }
 
       let newGrid = prevState.grid;
-      let newStatus: GameStatus = prevState.status;
-
-      // Handle first click - place mines and start the game
+      let newStatus: GameStatus = prevState.status;      // Handle first click - place mines and start the game
       if (prevState.firstClick) {
         newGrid = placeMines(prevState.grid, prevState.config, x, y);
         newStatus = GameStatus.PLAYING;
+        
+        // Development logging: compare generation strategies (only in dev mode)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🚀 New game started with improved mine generation!');
+          
+          // Check if detailed comparison is enabled
+          const debugEnabled = typeof window !== 'undefined' && 
+            localStorage.getItem('minesweeper-debug-comparison') === 'true';
+          
+          if (debugEnabled) {
+            const { compareGenerationStrategies } = require('../lib/gameLogic');
+            console.log('🔍 Running detailed mine generation comparison...');
+            compareGenerationStrategies(prevState.grid, prevState.config, x, y, 5);
+          } else {
+            console.log('💡 Enable detailed comparison with: minesweeperDebug.enableComparison()');
+          }
+        }
       }
 
       // Reveal the cell
