@@ -1,6 +1,13 @@
 // Sound effects for game events
 // Using Web Audio API to generate simple sound effects
 
+// Extend the Window interface to include webkitAudioContext for browser compatibility
+declare global {
+  interface Window {
+    webkitAudioContext?: typeof AudioContext;
+  }
+}
+
 export class SoundManager {
   private audioContext: AudioContext | null = null;
   private enabled: boolean = true;
@@ -8,7 +15,7 @@ export class SoundManager {
   constructor() {
     if (typeof window !== 'undefined') {
       try {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
       } catch (error) {
         console.warn('Web Audio API not supported:', error);
       }

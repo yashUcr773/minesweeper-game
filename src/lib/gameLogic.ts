@@ -187,7 +187,7 @@ function generateConstraintSatisfiedLayout(
     
     // Remove selected position and update constraints
     availablePositions.splice(selectedIndex, 1);
-    updateConstraints(selectedPos, availablePositions, zones);
+    updateConstraints(selectedPos, availablePositions);
   }
   
   calculateAdjacentMineCounts(newGrid, width, height);
@@ -215,7 +215,7 @@ function generateWeightedZoneLayout(
   };
   
   // Distribute mines across zones with optimal ratios
-  const distribution = calculateOptimalDistribution(mines, zones);
+  const distribution = calculateOptimalDistribution(mines);
   const placedMines: { x: number; y: number }[] = [];
   
   // Place mines in each zone
@@ -675,8 +675,14 @@ export function compareGenerationStrategies(
 }
 
 // Development utilities - accessible from browser console
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).minesweeperDebug = {
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {  // Extend window interface for debug utilities
+  interface DebugUtilities {
+    enableComparison: () => void;
+    disableComparison: () => void;
+    testGenerationQuality: (attempts?: number) => void;
+  }
+
+  (window as Window & { minesweeperDebug?: DebugUtilities }).minesweeperDebug = {
     enableComparison: () => {
       localStorage.setItem('minesweeper-debug-comparison', 'true');
       console.log('🔧 Mine generation comparison enabled for next game start');
@@ -906,7 +912,12 @@ function createConstraintZones(width: number, height: number, firstClickX: numbe
 function calculateConstraintWeight(
   pos: { x: number; y: number },
   selectedPositions: { x: number; y: number }[],
-  zones: any,
+  zones: {
+    available: { x: number; y: number }[];
+    corners: { x: number; y: number }[];
+    edges: { x: number; y: number }[];
+    center: { x: number; y: number }[];
+  },
   width: number,
   height: number
 ): number {
@@ -955,7 +966,6 @@ function weightedRandomSelect(weights: number[]): number {
 function updateConstraints(
   selectedPos: { x: number; y: number },
   availablePositions: { x: number; y: number }[],
-  zones: any
 ): void {
   // Remove positions too close to the newly placed mine
   for (let i = availablePositions.length - 1; i >= 0; i--) {
@@ -1048,7 +1058,7 @@ function getSafeZonePositions(width: number, height: number, firstClickX: number
 /**
  * Calculates optimal mine distribution across zones
  */
-function calculateOptimalDistribution(totalMines: number, zones: any): { [key: string]: number } {
+function calculateOptimalDistribution(totalMines: number): { [key: string]: number } {
   const distribution: { [key: string]: number } = {
     corners: 0,
     edges: 0,
