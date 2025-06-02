@@ -20,6 +20,7 @@ export interface UserPreferences {
   soundEnabled: boolean;
   colorBlindMode: boolean;
   showTimer: boolean;
+  focusMode?: boolean;
 }
 
 const STATS_KEY = 'minesweeper-stats';
