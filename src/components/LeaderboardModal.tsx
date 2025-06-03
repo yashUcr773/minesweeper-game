@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trophy, Clock, Target,  User, Medal, Star } from 'lucide-react';
 import { Button } from './ui/button';
-import { LeaderboardEntry, Difficulty } from '../types/game';
+import { LeaderboardEntry, Difficulty, LeaderboardStats } from '../types/game';
 import { useAuth } from '../hooks/useAuth';
 
 interface LeaderboardModalProps {
@@ -14,8 +14,9 @@ interface LeaderboardModalProps {
 export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>(Difficulty.BEGINNER);
   const [selectedTimeRange, setSelectedTimeRange] = useState<'day' | 'week' | 'month' | 'all'>('all');
+  const [selectedStatsFilter, setSelectedStatsFilter] = useState<'all' | Difficulty>('all');
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [userStats, setUserStats] = useState<any>(null);
+  const [userStats, setUserStats] = useState<LeaderboardStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'mystats'>('leaderboard');
 
@@ -91,12 +92,41 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
     if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
     return <Star className="w-5 h-5 text-gray-300" />;
   };
-
   const getRankBackground = (rank: number) => {
     if (rank === 1) return 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200';
     if (rank === 2) return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200';
     if (rank === 3) return 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200';
     return 'bg-white border-gray-200';
+  };
+
+  // Function to get filtered stats based on selected difficulty
+  const getFilteredStats = () => {
+    if (!userStats) return null;
+    
+    if (selectedStatsFilter === 'all') {
+      return {
+        totalGames: userStats.totalGames,
+        bestTime: userStats.bestTime,
+        averageTime: userStats.averageTime,
+        favoriteDifficulty: userStats.favoriteDifficulty
+      };
+    } else {
+      const diffStats = userStats.byDifficulty[selectedStatsFilter];
+      if (!diffStats) {
+        return {
+          totalGames: 0,
+          bestTime: 0,
+          averageTime: 0,
+          favoriteDifficulty: selectedStatsFilter
+        };
+      }
+      return {
+        totalGames: diffStats.totalGames,
+        bestTime: diffStats.bestTime,
+        averageTime: diffStats.averageTime,
+        favoriteDifficulty: selectedStatsFilter
+      };
+    }
   };
 
   if (!isOpen) return null;
@@ -249,34 +279,100 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
               )}
             </div>
           </>
-        )}
-
-        {activeTab === 'mystats' && userStats && (
+        )}        {activeTab === 'mystats' && userStats && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <p className="text-2xl font-bold text-blue-600">{userStats.totalGames}</p>
-                <p className="text-sm text-gray-600">Games Played</p>
+            {/* Overall Stats */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Overall Statistics</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Filter by Difficulty
+                  </label>
+                  <select
+                    value={selectedStatsFilter}
+                    onChange={(e) => setSelectedStatsFilter(e.target.value as 'all' | Difficulty)}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  >
+                    <option value="all">All Difficulties</option>
+                    {Object.keys(userStats.byDifficulty).map(difficulty => (
+                      <option key={difficulty} value={difficulty}>
+                        {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg text-center">
-                <p className="text-2xl font-bold text-green-600">
-                  {userStats.bestTime ? formatTime(userStats.bestTime) : '--'}
-                </p>
-                <p className="text-sm text-gray-600">Best Time</p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                <p className="text-2xl font-bold text-yellow-600">
-                  {userStats.averageTime ? formatTime(Math.round(userStats.averageTime)) : '--'}
-                </p>
-                <p className="text-sm text-gray-600">Average Time</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <p className="text-2xl font-bold text-purple-600 capitalize">
-                  {userStats.favoriteDifficulty}
-                </p>
-                <p className="text-sm text-gray-600">Favorite</p>
-              </div>
+              
+              {(() => {
+                const filteredStats = getFilteredStats();
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-blue-600">{filteredStats?.totalGames || 0}</p>
+                      <p className="text-sm text-gray-600">Games Played</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-green-600">
+                        {filteredStats?.bestTime ? formatTime(filteredStats.bestTime) : '--'}
+                      </p>
+                      <p className="text-sm text-gray-600">Best Time</p>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {filteredStats?.averageTime ? formatTime(Math.round(filteredStats.averageTime)) : '--'}
+                      </p>
+                      <p className="text-sm text-gray-600">Average Time</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg text-center">
+                      <p className="text-2xl font-bold text-purple-600 capitalize">
+                        {selectedStatsFilter === 'all' ? filteredStats?.favoriteDifficulty : selectedStatsFilter}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {selectedStatsFilter === 'all' ? 'Favorite' : 'Difficulty'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
+
+            {/* Stats by Difficulty */}
+            {userStats.byDifficulty && Object.keys(userStats.byDifficulty).length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Statistics by Difficulty</h3>
+                <div className="space-y-3">
+                  {Object.entries(userStats.byDifficulty).map(([difficulty, stats]) => (
+                    <div key={difficulty} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-gray-900 capitalize">{difficulty}</h4>
+                        <span className="text-sm text-gray-500">{stats.totalGames} games</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="text-center">
+                          <p className="font-semibold text-green-600">
+                            {formatTime(stats.bestTime)}
+                          </p>
+                          <p className="text-gray-600">Best Time</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold text-blue-600">
+                            {formatTime(stats.averageTime)}
+                          </p>
+                          <p className="text-gray-600">Avg Time</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold text-orange-600">
+                            {stats.bestScore}
+                          </p>
+                          <p className="text-gray-600">Best Score</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {userStats.totalGames === 0 && (
               <div className="text-center py-8 text-gray-500">

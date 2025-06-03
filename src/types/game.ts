@@ -125,10 +125,18 @@ export interface LeaderboardFilters {
   limit?: number;
 }
 
+export interface DifficultyStats {
+  totalGames: number;
+  bestTime: number;
+  averageTime: number;
+  bestScore: number;
+}
+
 export interface LeaderboardStats {
   totalGames: number;
   bestTime: number;
   averageTime: number;
   winRate: number;
   favoriteDifficulty: Difficulty;
+  byDifficulty: Record<string, DifficultyStats>;
 }

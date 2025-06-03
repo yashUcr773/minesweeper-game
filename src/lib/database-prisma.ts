@@ -186,7 +186,8 @@ export async function getUserStats(userId: string) {
       bestTime: 0,
       averageTime: 0,
       winRate: 100,
-      favoriteDifficulty: 'beginner' as const
+      favoriteDifficulty: 'beginner' as const,
+      byDifficulty: {}
     };
   }
 
@@ -203,11 +204,45 @@ export async function getUserStats(userId: string) {
   const favoriteDifficulty = Object.entries(difficultyCount)
     .sort(([,a], [,b]) => b - a)[0]?.[0] || 'beginner';
 
+  // Calculate stats by difficulty
+  const byDifficulty = entries.reduce((acc, entry) => {
+    const diff = entry.difficulty;
+    if (!acc[diff]) {
+      acc[diff] = {
+        totalGames: 0,
+        bestTime: Number.MAX_SAFE_INTEGER,
+        totalTime: 0,
+        bestScore: 0
+      };
+    }
+    
+    acc[diff].totalGames += 1;
+    acc[diff].bestTime = Math.min(acc[diff].bestTime, entry.timeElapsed);
+    acc[diff].totalTime += entry.timeElapsed;
+    acc[diff].bestScore = Math.max(acc[diff].bestScore, entry.score);
+    
+    return acc;
+  }, {} as Record<string, {
+    totalGames: number;
+    bestTime: number;
+    totalTime: number;
+    bestScore: number;
+  }>);
+  // Calculate average times for each difficulty
+  Object.keys(byDifficulty).forEach(diff => {
+    const stats = byDifficulty[diff];
+    const averageTime = Math.round(stats.totalTime / stats.totalGames);
+    // Remove totalTime and add averageTime
+    delete (stats as any).totalTime;
+    (stats as any).averageTime = averageTime;
+  });
+
   return {
     totalGames,
     bestTime,
     averageTime,
     winRate: 100, // All saved games are wins
-    favoriteDifficulty
+    favoriteDifficulty,
+    byDifficulty
   };
 }
