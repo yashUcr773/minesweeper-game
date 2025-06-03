@@ -75,38 +75,51 @@ export async function updateUser(id: string, updates: Partial<UserWithPassword>)
       username: user.username,
       createdAt: user.createdAt.toISOString(),
       lastActive: user.lastActive.toISOString()
-    };
-  } catch (error) {
+    };  } catch {
     return null;
   }
 }
 
 // Leaderboard operations
 export async function addLeaderboardEntry(entry: Omit<LeaderboardEntry, 'id'>): Promise<LeaderboardEntry> {
-  const dbEntry = await prisma.leaderboardEntry.create({
-    data: {
-      userId: entry.userId,
-      difficulty: entry.difficulty,
-      timeElapsed: entry.timeElapsed,
-      score: entry.score,
-      config: JSON.stringify(entry.config),
-      completedAt: new Date(entry.completedAt)
-    },
-    include: {
-      user: true
-    }
-  });
+  try {
+    const dbEntry = await prisma.leaderboardEntry.create({
+      data: {
+        userId: entry.userId,
+        difficulty: entry.difficulty,
+        timeElapsed: entry.timeElapsed,
+        score: entry.score,
+        config: JSON.stringify(entry.config),
+        gameSessionId: entry.gameSessionId,
+        completedAt: new Date(entry.completedAt)
+      },
+      include: {
+        user: true
+      }
+    });
 
-  return {
-    id: dbEntry.id,
-    userId: dbEntry.userId,
-    username: dbEntry.user.username,
-    difficulty: dbEntry.difficulty as Difficulty,
-    timeElapsed: dbEntry.timeElapsed,
-    score: dbEntry.score,
-    config: JSON.parse(dbEntry.config),
-    completedAt: dbEntry.completedAt.toISOString()
-  };
+    return {
+      id: dbEntry.id,
+      userId: dbEntry.userId,
+      username: dbEntry.user.username,
+      difficulty: dbEntry.difficulty as Difficulty,
+      timeElapsed: dbEntry.timeElapsed,
+      score: dbEntry.score,
+      gameSessionId: dbEntry.gameSessionId,
+      config: JSON.parse(dbEntry.config),
+      completedAt: dbEntry.completedAt.toISOString()
+    };  } catch (error: unknown) {
+    // Handle unique constraint violation (duplicate session)
+    if (error && typeof error === 'object' && 'code' in error && 
+        error.code === 'P2002' && 'meta' in error &&
+        typeof error.meta === 'object' && error.meta &&
+        'target' in error.meta && 
+        Array.isArray(error.meta.target) && 
+        error.meta.target.includes('unique_user_session')) {
+      throw new Error('DUPLICATE_SUBMISSION');
+    }
+    throw error;
+  }
 }
 
 export async function getLeaderboardByDifficulty(
@@ -148,7 +161,6 @@ export async function getLeaderboardByDifficulty(
     },
     take: limit
   });
-
   return entries.map(entry => ({
     id: entry.id,
     userId: entry.userId,
@@ -156,6 +168,7 @@ export async function getLeaderboardByDifficulty(
     difficulty: entry.difficulty as Difficulty,
     timeElapsed: entry.timeElapsed,
     score: entry.score,
+    gameSessionId: entry.gameSessionId,
     config: JSON.parse(entry.config),
     completedAt: entry.completedAt.toISOString()
   }));

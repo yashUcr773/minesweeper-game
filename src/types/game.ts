@@ -114,6 +114,7 @@ export interface LeaderboardEntry {
   difficulty: Difficulty;
   timeElapsed: number;
   score: number;
+  gameSessionId: string;
   completedAt: string;
   config: GameConfig;
 }

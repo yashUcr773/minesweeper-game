@@ -24,15 +24,17 @@ model User {
 }
 
 model LeaderboardEntry {
-  id          String   @id @default(cuid())
-  userId      String
-  difficulty  String
-  timeElapsed Int
-  score       Int
-  config      String   // JSON string containing game configuration
-  completedAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  userId        String
+  difficulty    String
+  timeElapsed   Int
+  score         Int
+  config        String   // JSON string containing game configuration
+  gameSessionId String   // Unique identifier for each game session
+  completedAt   DateTime @default(now())
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  @@unique([userId, gameSessionId], name: "unique_user_session")
   @@map("leaderboard_entries")
 }
