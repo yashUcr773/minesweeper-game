@@ -1,5 +1,5 @@
 import { prisma } from './prisma';
-import { User, LeaderboardEntry, Difficulty } from '../types/game';
+import { User, LeaderboardEntry, Difficulty, DailyPuzzle, DailyPuzzleEntry } from '../types/game';
 
 // User operations
 export interface UserWithPassword extends User {
@@ -245,4 +245,226 @@ export async function getUserStats(userId: string) {
     favoriteDifficulty,
     byDifficulty
   };
+}
+
+// Daily Puzzle operations
+export async function createDailyPuzzle(puzzle: Omit<DailyPuzzle, 'id' | 'createdAt'>): Promise<DailyPuzzle> {
+  const dbPuzzle = await prisma.dailyPuzzle.create({
+    data: {
+      date: puzzle.date,
+      difficulty: puzzle.difficulty,
+      seed: puzzle.seed,
+      width: puzzle.width,
+      height: puzzle.height,
+      mines: puzzle.mines
+    }
+  });
+
+  return {
+    id: dbPuzzle.id,
+    date: dbPuzzle.date,
+    difficulty: dbPuzzle.difficulty as Difficulty,
+    seed: dbPuzzle.seed,
+    width: dbPuzzle.width,
+    height: dbPuzzle.height,
+    mines: dbPuzzle.mines,
+    createdAt: dbPuzzle.createdAt.toISOString()
+  };
+}
+
+export async function getTodaysPuzzle(): Promise<DailyPuzzle | null> {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  
+  const dbPuzzle = await prisma.dailyPuzzle.findUnique({
+    where: { date: today }
+  });
+
+  if (!dbPuzzle) return null;
+
+  return {
+    id: dbPuzzle.id,
+    date: dbPuzzle.date,
+    difficulty: dbPuzzle.difficulty as Difficulty,
+    seed: dbPuzzle.seed,
+    width: dbPuzzle.width,
+    height: dbPuzzle.height,
+    mines: dbPuzzle.mines,
+    createdAt: dbPuzzle.createdAt.toISOString()
+  };
+}
+
+export async function getOrCreateTodaysPuzzle(): Promise<DailyPuzzle> {
+  const existing = await getTodaysPuzzle();
+  if (existing) return existing;
+
+  // Create today's puzzle with a deterministic seed based on the date
+  const today = new Date().toISOString().split('T')[0];
+  const seed = `daily-${today}`;
+  
+  // Use intermediate difficulty for daily puzzles
+  return await createDailyPuzzle({
+    date: today,
+    difficulty: Difficulty.INTERMEDIATE,
+    seed: seed,
+    width: 16,
+    height: 16,
+    mines: 40
+  });
+}
+
+export async function submitDailyPuzzleScore(
+  userId: string,
+  puzzleId: string,
+  timeElapsed: number,
+  score: number,
+  completed: boolean
+): Promise<DailyPuzzleEntry> {
+  try {
+    // Get the current attempt number for this user and puzzle
+    const existingAttempts = await prisma.dailyPuzzleEntry.findMany({
+      where: { userId, puzzleId },
+      orderBy: { attemptNumber: 'desc' },
+      take: 1
+    });
+
+    const nextAttemptNumber = existingAttempts.length > 0 ? existingAttempts[0].attemptNumber + 1 : 1;
+
+    // Create new entry with attempt tracking
+    const dbEntry = await prisma.dailyPuzzleEntry.create({
+      data: {
+        userId,
+        puzzleId,
+        timeElapsed,
+        score,
+        completed,
+        success: completed, // Success is true only if completed successfully
+        attemptNumber: nextAttemptNumber
+      },
+      include: {
+        user: true
+      }
+    });
+
+    return {
+      id: dbEntry.id,
+      userId: dbEntry.userId,
+      puzzleId: dbEntry.puzzleId,
+      timeElapsed: dbEntry.timeElapsed,
+      score: dbEntry.score,
+      completed: dbEntry.completed,
+      completedAt: dbEntry.completedAt.toISOString(),
+      username: dbEntry.user.username
+    };
+  } catch (error: unknown) {
+    console.error('Error submitting daily puzzle score:', error);
+    throw error;
+  }
+}
+
+export async function getDailyPuzzleLeaderboard(puzzleId: string, limit: number = 50): Promise<DailyPuzzleEntry[]> {
+  // Get ALL attempts for this puzzle (both successful and failed)
+  const allAttempts = await prisma.dailyPuzzleEntry.findMany({
+    where: {
+      puzzleId
+    },
+    include: {
+      user: true
+    },
+    orderBy: [
+      { userId: 'asc' },    // Group by user
+      { attemptNumber: 'asc' } // Then by attempt number (first attempt first)
+    ]
+  });
+
+  // Filter to only include users whose FIRST ATTEMPT was successful
+  const eligibleEntries = new Map<string, any>();
+  
+  for (const entry of allAttempts) {
+    if (!eligibleEntries.has(entry.userId)) {
+      // This is the user's first attempt for this puzzle
+      if (entry.completed && entry.success) {
+        // Only include if first attempt was successful
+        eligibleEntries.set(entry.userId, entry);
+      }
+      // If first attempt failed, user is not eligible for leaderboard
+    }
+  }
+
+  // Convert to array and sort by performance
+  const leaderboardEntries = Array.from(eligibleEntries.values())
+    .sort((a, b) => {
+      // Sort by time elapsed (ascending), then by score (descending)
+      if (a.timeElapsed !== b.timeElapsed) {
+        return a.timeElapsed - b.timeElapsed;
+      }
+      return b.score - a.score;
+    })
+    .slice(0, limit);
+
+  return leaderboardEntries.map(entry => ({
+    id: entry.id,
+    userId: entry.userId,
+    puzzleId: entry.puzzleId,
+    timeElapsed: entry.timeElapsed,
+    score: entry.score,
+    completed: entry.completed,
+    completedAt: entry.completedAt.toISOString(),
+    username: entry.user.username
+  }));
+}
+
+export async function getUserDailyPuzzleEntry(userId: string, puzzleId: string): Promise<DailyPuzzleEntry | null> {
+  // Get the user's first successful completion only (if any)
+  const completedEntry = await prisma.dailyPuzzleEntry.findFirst({
+    where: {
+      userId,
+      puzzleId,
+      completed: true,
+      success: true
+    },
+    orderBy: { attemptNumber: 'asc' }, // First successful attempt
+    include: {
+      user: true
+    }
+  });
+
+  if (completedEntry) {
+    return {
+      id: completedEntry.id,
+      userId: completedEntry.userId,
+      puzzleId: completedEntry.puzzleId,
+      timeElapsed: completedEntry.timeElapsed,
+      score: completedEntry.score,
+      completed: completedEntry.completed,
+      completedAt: completedEntry.completedAt.toISOString(),
+      username: completedEntry.user.username
+    };
+  }
+
+  // If no successful completion, return null (no entry for leaderboard purposes)
+  return null;
+}
+
+export async function getUserDailyPuzzleAttempts(userId: string, puzzleId: string): Promise<DailyPuzzleEntry[]> {
+  const attempts = await prisma.dailyPuzzleEntry.findMany({
+    where: {
+      userId,
+      puzzleId
+    },
+    orderBy: { attemptNumber: 'asc' }, // Order by attempt number (first to last)
+    include: {
+      user: true
+    }
+  });
+
+  return attempts.map(attempt => ({
+    id: attempt.id,
+    userId: attempt.userId,
+    puzzleId: attempt.puzzleId,
+    timeElapsed: attempt.timeElapsed,
+    score: attempt.score,
+    completed: attempt.completed,
+    completedAt: attempt.completedAt.toISOString(),
+    username: attempt.user.username
+  }));
 }

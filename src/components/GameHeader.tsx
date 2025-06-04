@@ -5,9 +5,10 @@ import { Button } from './ui/button';
 import { ErrorModal } from './ErrorModal';
 import { AuthModal } from './AuthModal';
 import { LeaderboardModal } from './LeaderboardModal';
+import { DailyPuzzleModal } from './DailyPuzzleModal';
 import { GameState, Difficulty, DIFFICULTY_CONFIGS, CustomGameConfig } from '../types/game';
 import { cn } from '../lib/utils';
-import { RotateCcw, BarChart3, Settings, ChevronUp, ChevronDown, Maximize2, Minimize2, Trophy, User, LogOut } from 'lucide-react';
+import { RotateCcw, BarChart3, Settings, ChevronUp, ChevronDown, Maximize2, Minimize2, Trophy, User, LogOut, Calendar } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 interface GameHeaderProps {
@@ -64,10 +65,10 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  // Auth and leaderboard state
+    // Auth and leaderboard state
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showDailyPuzzle, setShowDailyPuzzle] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
   const validateCustomConfig = (config: CustomGameConfig): string | null => {
@@ -208,6 +209,14 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden md:inline">Stats</span>
+              </Button>              <Button
+                onClick={() => setShowDailyPuzzle(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-1"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="hidden md:inline">Daily</span>
               </Button>
               <Button
                 onClick={() => setShowLeaderboard(true)}
@@ -448,9 +457,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
         onClose={() => setShowError(false)}
         title="Invalid Custom Game Configuration"
         message={errorMessage}
-      />
-
-      {/* Auth Modal */}
+      />      {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
@@ -460,6 +467,12 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
       <LeaderboardModal
         isOpen={showLeaderboard}
         onClose={() => setShowLeaderboard(false)}
+      />
+
+      {/* Daily Puzzle Modal */}
+      <DailyPuzzleModal
+        isOpen={showDailyPuzzle}
+        onClose={() => setShowDailyPuzzle(false)}
       />
     </div>
   );

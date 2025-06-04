@@ -140,3 +140,34 @@ export interface LeaderboardStats {
   favoriteDifficulty: Difficulty;
   byDifficulty: Record<string, DifficultyStats>;
 }
+
+// Daily Puzzle Types
+export interface DailyPuzzle {
+  id: string;
+  date: string; // YYYY-MM-DD format
+  difficulty: Difficulty;
+  seed: string;
+  width: number;
+  height: number;
+  mines: number;
+  createdAt: string;
+}
+
+export interface DailyPuzzleEntry {
+  id: string;
+  userId: string;
+  puzzleId: string;
+  timeElapsed: number;
+  score: number;
+  completed: boolean;
+  completedAt: string;
+  username?: string; // For leaderboard display
+}
+
+export interface DailyPuzzleLeaderboard {
+  puzzle: DailyPuzzle;
+  leaderboard: DailyPuzzleEntry[];
+  userEntry?: DailyPuzzleEntry;
+  userAttempts?: DailyPuzzleEntry[];
+  rank?: number;
+}

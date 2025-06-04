@@ -19,6 +19,7 @@ model User {
   lastActive DateTime @default(now())
   
   leaderboardEntries LeaderboardEntry[]
+  dailyPuzzleEntries DailyPuzzleEntry[]
   
   @@map("users")
 }
@@ -37,4 +38,36 @@ model LeaderboardEntry {
   
   @@unique([userId, gameSessionId], name: "unique_user_session")
   @@map("leaderboard_entries")
+}
+
+model DailyPuzzle {
+  id          String   @id @default(cuid())
+  date        String   @unique // Format: YYYY-MM-DD
+  difficulty  String
+  seed        String   // Seed for generating the puzzle
+  width       Int
+  height      Int
+  mines       Int
+  createdAt   DateTime @default(now())
+  
+  entries DailyPuzzleEntry[]
+  
+  @@map("daily_puzzles")
+}
+
+model DailyPuzzleEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  puzzleId      String
+  timeElapsed   Int
+  score         Int
+  completed     Boolean  @default(false)
+  success       Boolean  @default(false)  // Whether the attempt was successful
+  attemptNumber Int      @default(1)       // Which attempt this was (1, 2, 3, etc.)
+  completedAt   DateTime @default(now())
+  
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  puzzle DailyPuzzle @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+  
+  @@map("daily_puzzle_entries")
 }
