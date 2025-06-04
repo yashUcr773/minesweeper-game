@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Card } from './ui/card';
 import { getGameStats, getUserPreferences } from '../lib/storage';
 import type { GameStats, UserPreferences } from '../lib/storage';
-import { Trophy, Clock, Target, X } from 'lucide-react';
+import { Trophy, Clock, Target } from 'lucide-react';
 
 interface StatsModalProps {
   isOpen: boolean;
@@ -24,7 +24,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  if (!stats || !preferences) return null;
+  if (!isOpen || !stats || !preferences) return null;
 
   const winRate = stats.gamesPlayed > 0 ? (stats.gamesWon / stats.gamesPlayed * 100).toFixed(1) : '0.0';
   
@@ -45,49 +45,56 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-md mx-4">
-        <DialogHeader>
-          <DialogTitle className="flex items-center text-2xl font-bold text-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
             <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
             Statistics
-          </DialogTitle>
-        </DialogHeader>
+          </h2>
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            size="icon"
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
 
         {/* General Stats */}
         <div className="space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-blue-50 p-4 text-center">
+            <div className="bg-blue-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-blue-600">{stats.gamesPlayed}</div>
               <div className="text-sm text-gray-600">Games Played</div>
-            </Card>
-            <Card className="bg-green-50 p-4 text-center">
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-green-600">{winRate}%</div>
               <div className="text-sm text-gray-600">Win Rate</div>
-            </Card>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-yellow-50 p-4 text-center">
+            <div className="bg-yellow-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-yellow-600">{stats.gamesWon}</div>
               <div className="text-sm text-gray-600">Games Won</div>
-            </Card>
-            <Card className="bg-red-50 p-4 text-center">
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-red-600">{stats.gamesLost}</div>
               <div className="text-sm text-gray-600">Games Lost</div>
-            </Card>
+            </div>
           </div>
 
-          <Card className="bg-purple-50 p-4 text-center">
+          <div className="bg-purple-50 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-purple-600 flex items-center justify-center">
               <Clock className="w-5 h-5 mr-1" />
               {formatTotalTime(stats.totalPlayTime)}
             </div>
             <div className="text-sm text-gray-600">Total Play Time</div>
-          </Card>
-        </div>
-
-        {/* Best Times */}
+          </div>
+        </div>        {/* Best Times */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <Target className="w-5 h-5 mr-2 text-blue-500" />
@@ -122,10 +129,13 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Close Button */}
-        <Button onClick={onClose} className="w-full">
+        <Button
+          onClick={onClose}
+          className="w-full"
+        >
           Close
         </Button>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };

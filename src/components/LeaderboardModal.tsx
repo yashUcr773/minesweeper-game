@@ -3,6 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trophy, Clock, Target,  User, Medal, Star } from 'lucide-react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Label } from './ui/label';
 import { LeaderboardEntry, Difficulty, LeaderboardStats } from '../types/game';
 import { useAuth } from '../hooks/useAuth';
 
@@ -52,6 +57,7 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
       setLoading(false);
     }
   };
+
   const fetchUserStats = async () => {
     try {
       // Get auth token from cookies
@@ -92,6 +98,7 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
     if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
     return <Star className="w-5 h-5 text-gray-300" />;
   };
+
   const getRankBackground = (rank: number) => {
     if (rank === 1) return 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200';
     if (rank === 2) return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200';
@@ -132,88 +139,66 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center text-2xl">
             <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
             Leaderboard
-          </h2>
-          <Button
-            onClick={onClose}
-            variant="ghost"
-            size="icon"
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Tabs */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'leaderboard'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Trophy className="w-4 h-4 inline mr-1" />
-            Leaderboard
-          </button>
-          {isAuthenticated && (
-            <button
-              onClick={() => setActiveTab('mystats')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'mystats'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <User className="w-4 h-4 inline mr-1" />
-              My Stats
-            </button>
-          )}
-        </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'leaderboard' | 'mystats')} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="leaderboard" className="flex items-center">
+              <Trophy className="w-4 h-4 mr-1" />
+              Leaderboard
+            </TabsTrigger>
+            {isAuthenticated && (
+              <TabsTrigger value="mystats" className="flex items-center">
+                <User className="w-4 h-4 mr-1" />
+                My Stats
+              </TabsTrigger>
+            )}
+          </TabsList>
 
-        {activeTab === 'leaderboard' && (
-          <>
+          <TabsContent value="leaderboard" className="space-y-6">
             {/* Filters */}
-            <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex flex-wrap gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="text-sm font-medium text-gray-700 mb-1">
                   Difficulty
-                </label>
-                <select
-                  value={selectedDifficulty}
-                  onChange={(e) => setSelectedDifficulty(e.target.value as Difficulty)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="beginner">Beginner (9×9)</option>
-                  <option value="intermediate">Intermediate (16×16)</option>
-                  <option value="expert">Expert (30×16)</option>
-                  <option value="master">Master (40×20)</option>
-                  <option value="insane">Insane (50×25)</option>
-                  <option value="extreme">Extreme (60×30)</option>
-                </select>
+                </Label>
+                <Select value={selectedDifficulty} onValueChange={(value) => setSelectedDifficulty(value as Difficulty)}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner (9×9)</SelectItem>
+                    <SelectItem value="intermediate">Intermediate (16×16)</SelectItem>
+                    <SelectItem value="expert">Expert (30×16)</SelectItem>
+                    <SelectItem value="master">Master (40×20)</SelectItem>
+                    <SelectItem value="insane">Insane (50×25)</SelectItem>
+                    <SelectItem value="extreme">Extreme (60×30)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="text-sm font-medium text-gray-700 mb-1">
                   Time Range
-                </label>
-                <select
-                  value={selectedTimeRange}
-                  onChange={(e) => setSelectedTimeRange(e.target.value as any)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="day">Last 24 Hours</option>
-                  <option value="week">Last Week</option>
-                  <option value="month">Last Month</option>
-                  <option value="all">All Time</option>
-                </select>
+                </Label>
+                <Select value={selectedTimeRange} onValueChange={(value) => setSelectedTimeRange(value as 'day' | 'week' | 'month' | 'all')}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="all">All Time</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -232,166 +217,182 @@ export function LeaderboardModal({ isOpen, onClose }: LeaderboardModalProps) {
               ) : (
                 <div className="space-y-2">
                   {entries.map((entry, index) => (
-                    <div
-                      key={entry.id}
-                      className={`p-4 rounded-lg border-2 ${getRankBackground(index + 1)}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg font-bold text-gray-600">
-                              #{index + 1}
-                            </span>
-                            {getDifficultyIcon(index + 1)}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {entry.username}
-                              {entry.userId === user?.id && (
-                                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                  You
-                                </span>
-                              )}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {new Date(entry.completedAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center space-x-4">
-                            <div className="text-right">
-                              <p className="font-bold text-lg text-gray-900 flex items-center">
-                                <Clock className="w-4 h-4 mr-1" />
-                                {formatTime(entry.timeElapsed)}
+                    <Card key={entry.id} className={`${getRankBackground(index + 1)}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg font-bold text-gray-600">
+                                #{index + 1}
+                              </span>
+                              {getDifficultyIcon(index + 1)}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {entry.username}
+                                {entry.userId === user?.id && (
+                                  <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    You
+                                  </span>
+                                )}
                               </p>
-                              <p className="text-sm text-gray-500 flex items-center">
-                                <Target className="w-3 h-3 mr-1" />
-                                Score: {entry.score}
+                              <p className="text-sm text-gray-500">
+                                {new Date(entry.completedAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <div className="flex items-center space-x-4">
+                              <div className="text-right">
+                                <p className="font-bold text-lg text-gray-900 flex items-center">
+                                  <Clock className="w-4 h-4 mr-1" />
+                                  {formatTime(entry.timeElapsed)}
+                                </p>
+                                <p className="text-sm text-gray-500 flex items-center">
+                                  <Target className="w-3 h-3 mr-1" />
+                                  Score: {entry.score}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               )}
             </div>
-          </>
-        )}        {activeTab === 'mystats' && userStats && (
-          <div className="space-y-6">
-            {/* Overall Stats */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Overall Statistics</h3>
+          </TabsContent>
+
+          <TabsContent value="mystats" className="space-y-6">
+            {userStats && (
+              <div className="space-y-6">
+                {/* Overall Stats */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Filter by Difficulty
-                  </label>
-                  <select
-                    value={selectedStatsFilter}
-                    onChange={(e) => setSelectedStatsFilter(e.target.value as 'all' | Difficulty)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  >
-                    <option value="all">All Difficulties</option>
-                    {Object.keys(userStats.byDifficulty).map(difficulty => (
-                      <option key={difficulty} value={difficulty}>
-                        {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              {(() => {
-                const filteredStats = getFilteredStats();
-                return (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-blue-600">{filteredStats?.totalGames || 0}</p>
-                      <p className="text-sm text-gray-600">Games Played</p>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-green-600">
-                        {filteredStats?.bestTime ? formatTime(filteredStats.bestTime) : '--'}
-                      </p>
-                      <p className="text-sm text-gray-600">Best Time</p>
-                    </div>
-                    <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {filteredStats?.averageTime ? formatTime(Math.round(filteredStats.averageTime)) : '--'}
-                      </p>
-                      <p className="text-sm text-gray-600">Average Time</p>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg text-center">
-                      <p className="text-2xl font-bold text-purple-600 capitalize">
-                        {selectedStatsFilter === 'all' ? filteredStats?.favoriteDifficulty : selectedStatsFilter}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {selectedStatsFilter === 'all' ? 'Favorite' : 'Difficulty'}
-                      </p>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Overall Statistics</h3>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 mb-1">
+                        Filter by Difficulty
+                      </Label>
+                      <Select value={selectedStatsFilter} onValueChange={(value) => setSelectedStatsFilter(value as 'all' | Difficulty)}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Difficulties</SelectItem>
+                          {Object.keys(userStats.byDifficulty).map(difficulty => (
+                            <SelectItem key={difficulty} value={difficulty}>
+                              {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                );
-              })()}
-            </div>
-
-            {/* Stats by Difficulty */}
-            {userStats.byDifficulty && Object.keys(userStats.byDifficulty).length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Statistics by Difficulty</h3>
-                <div className="space-y-3">
-                  {Object.entries(userStats.byDifficulty).map(([difficulty, stats]) => (
-                    <div key={difficulty} className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-gray-900 capitalize">{difficulty}</h4>
-                        <span className="text-sm text-gray-500">{stats.totalGames} games</span>
+                  
+                  {(() => {
+                    const filteredStats = getFilteredStats();
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card className="bg-blue-50 border-blue-200">
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-blue-600">{filteredStats?.totalGames || 0}</p>
+                            <p className="text-sm text-gray-600">Games Played</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-green-50 border-green-200">
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-green-600">
+                              {filteredStats?.bestTime ? formatTime(filteredStats.bestTime) : '--'}
+                            </p>
+                            <p className="text-sm text-gray-600">Best Time</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-yellow-50 border-yellow-200">
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-yellow-600">
+                              {filteredStats?.averageTime ? formatTime(Math.round(filteredStats.averageTime)) : '--'}
+                            </p>
+                            <p className="text-sm text-gray-600">Average Time</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-purple-50 border-purple-200">
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-purple-600 capitalize">
+                              {selectedStatsFilter === 'all' ? filteredStats?.favoriteDifficulty : selectedStatsFilter}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {selectedStatsFilter === 'all' ? 'Favorite' : 'Difficulty'}
+                            </p>
+                          </CardContent>
+                        </Card>
                       </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div className="text-center">
-                          <p className="font-semibold text-green-600">
-                            {formatTime(stats.bestTime)}
-                          </p>
-                          <p className="text-gray-600">Best Time</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-blue-600">
-                            {formatTime(stats.averageTime)}
-                          </p>
-                          <p className="text-gray-600">Avg Time</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-orange-600">
-                            {stats.bestScore}
-                          </p>
-                          <p className="text-gray-600">Best Score</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })()}
                 </div>
-              </div>
-            )}
 
-            {userStats.totalGames === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Star className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>Complete your first game to see your stats!</p>
+                {/* Stats by Difficulty */}
+                {userStats.byDifficulty && Object.keys(userStats.byDifficulty).length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Statistics by Difficulty</h3>
+                    <div className="space-y-3">
+                      {Object.entries(userStats.byDifficulty).map(([difficulty, stats]) => (
+                        <Card key={difficulty} className="bg-gray-50">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-gray-900 capitalize">{difficulty}</h4>
+                              <span className="text-sm text-gray-500">{stats.totalGames} games</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 text-sm">
+                              <div className="text-center">
+                                <p className="font-semibold text-green-600">
+                                  {formatTime(stats.bestTime)}
+                                </p>
+                                <p className="text-gray-600">Best Time</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="font-semibold text-blue-600">
+                                  {formatTime(stats.averageTime)}
+                                </p>
+                                <p className="text-gray-600">Avg Time</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="font-semibold text-orange-600">
+                                  {stats.bestScore}
+                                </p>
+                                <p className="text-gray-600">Best Score</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {userStats.totalGames === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Star className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>Complete your first game to see your stats!</p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
 
         {!isAuthenticated && (
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-center text-blue-800">
-              <User className="w-4 h-4 inline mr-1" />
-              Sign in to track your scores and compete on the leaderboard!
-            </p>
-          </div>
+          <Card className="mt-6 bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <p className="text-center text-blue-800">
+                <User className="w-4 h-4 inline mr-1" />
+                Sign in to track your scores and compete on the leaderboard!
+              </p>
+            </CardContent>
+          </Card>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

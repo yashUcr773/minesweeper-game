@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Card } from './ui/card';
 import { getGameStats, getUserPreferences } from '../lib/storage';
 import type { GameStats, UserPreferences } from '../lib/storage';
-import { Trophy, Clock, Target, X } from 'lucide-react';
+import { Trophy, Clock, Target } from 'lucide-react';
 
 interface StatsModalProps {
   isOpen: boolean;
@@ -46,9 +46,9 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-md mx-4">
+      <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-2xl font-bold text-gray-800">
+          <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center">
             <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
             Statistics
           </DialogTitle>
@@ -57,28 +57,28 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
         {/* General Stats */}
         <div className="space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-blue-50 p-4 text-center">
+            <Card className="bg-blue-50 p-4 text-center border-blue-200">
               <div className="text-2xl font-bold text-blue-600">{stats.gamesPlayed}</div>
               <div className="text-sm text-gray-600">Games Played</div>
             </Card>
-            <Card className="bg-green-50 p-4 text-center">
+            <Card className="bg-green-50 p-4 text-center border-green-200">
               <div className="text-2xl font-bold text-green-600">{winRate}%</div>
               <div className="text-sm text-gray-600">Win Rate</div>
             </Card>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-yellow-50 p-4 text-center">
+            <Card className="bg-yellow-50 p-4 text-center border-yellow-200">
               <div className="text-2xl font-bold text-yellow-600">{stats.gamesWon}</div>
               <div className="text-sm text-gray-600">Games Won</div>
             </Card>
-            <Card className="bg-red-50 p-4 text-center">
+            <Card className="bg-red-50 p-4 text-center border-red-200">
               <div className="text-2xl font-bold text-red-600">{stats.gamesLost}</div>
               <div className="text-sm text-gray-600">Games Lost</div>
             </Card>
           </div>
 
-          <Card className="bg-purple-50 p-4 text-center">
+          <Card className="bg-purple-50 p-4 text-center border-purple-200">
             <div className="text-2xl font-bold text-purple-600 flex items-center justify-center">
               <Clock className="w-5 h-5 mr-1" />
               {formatTotalTime(stats.totalPlayTime)}
@@ -96,11 +96,11 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
               <span className="font-medium">Beginner (9×9)</span>
-              <span className="text-blue-600 font-mono">{formatTime(stats.bestTimes.beginner)}</span>
+              <span className="text-green-600 font-mono">{formatTime(stats.bestTimes.beginner)}</span>
             </div>
             <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
               <span className="font-medium">Intermediate (16×16)</span>
-              <span className="text-orange-600 font-mono">{formatTime(stats.bestTimes.intermediate)}</span>
+              <span className="text-blue-600 font-mono">{formatTime(stats.bestTimes.intermediate)}</span>
             </div>
             <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
               <span className="font-medium">Expert (30×16)</span>
@@ -122,7 +122,10 @@ export const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Close Button */}
-        <Button onClick={onClose} className="w-full">
+        <Button
+          onClick={onClose}
+          className="w-full"
+        >
           Close
         </Button>
       </DialogContent>

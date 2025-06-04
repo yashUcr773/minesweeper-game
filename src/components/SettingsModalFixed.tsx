@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import type { UserPreferences } from '../lib/storage';
-import { X, Settings, Volume2, VolumeX, Eye, Clock } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Eye, Clock } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -38,42 +41,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   if (!isOpen || !localPreferences) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-full max-w-md mx-4">
+        <DialogHeader>
+          <DialogTitle className="flex items-center text-2xl font-bold text-gray-800">
             <Settings className="w-6 h-6 mr-2 text-gray-600" />
             Settings
-          </h2>
-          <Button
-            onClick={onClose}
-            variant="ghost"
-            size="icon"
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
         {/* Settings */}
         <div className="space-y-6">
           {/* Preferred Difficulty */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">
               Preferred Difficulty
-            </label>
-            <select
-              value={localPreferences.preferredDifficulty}
-              onChange={(e) => updateLocalPreference('preferredDifficulty', e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            </Label>
+            <Select 
+              value={localPreferences.preferredDifficulty} 
+              onValueChange={(value) => updateLocalPreference('preferredDifficulty', value)}
             >
-              <option value="beginner">Beginner (9×9, 10 mines)</option>
-              <option value="intermediate">Intermediate (16×16, 40 mines)</option>
-              <option value="expert">Expert (30×16, 99 mines)</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beginner">Beginner (9×9, 10 mines)</SelectItem>
+                <SelectItem value="intermediate">Intermediate (16×16, 40 mines)</SelectItem>
+                <SelectItem value="expert">Expert (30×16, 99 mines)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Sound Effects */}
@@ -132,9 +129,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <strong>Tips:</strong> Color blind mode uses symbols instead of colors for mine counts. 
             Sound effects provide audio feedback for game events.
           </p>
-        </div>
-
-        {/* Buttons */}
+        </div>        {/* Buttons */}
         <div className="flex space-x-3 mt-6">
           <Button
             onClick={onClose}
@@ -150,7 +145,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             Save Settings
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

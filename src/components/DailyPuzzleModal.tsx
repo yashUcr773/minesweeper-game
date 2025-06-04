@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Trophy, Clock, Star, Medal, Users, Target } from 'lucide-react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useAuth } from '../hooks/useAuth';
 import { DailyPuzzle as DailyPuzzleType, DailyPuzzleEntry, DailyPuzzleLeaderboard } from '../types/game';
 import { GameBoard } from './GameBoard';
@@ -215,74 +218,45 @@ export function DailyPuzzleModal({ isOpen, onClose }: DailyPuzzleModalProps) {  
     if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
     return <Star className="w-5 h-5 text-gray-300" />;
   };
-
   if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-3">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-3">
             <Calendar className="w-6 h-6 text-blue-500" />
-            <h2 className="text-2xl font-bold text-gray-900">Daily Puzzle</h2>
+            <span className="text-2xl font-bold text-gray-900">Daily Puzzle</span>
             <span className="text-sm text-gray-500">
               {new Date().toLocaleDateString()}
             </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
-          >
-            ×
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
         {/* Tabs */}
-        <div className="flex border-b">
-          <button
-            onClick={() => setActiveTab('play')}
-            className={`px-6 py-3 font-medium ${
-              activeTab === 'play'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Play Today's Puzzle
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`px-6 py-3 font-medium ${
-              activeTab === 'leaderboard'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Users className="w-4 h-4 inline mr-2" />
-            Leaderboard
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : (
-            <>
-              {activeTab === 'play' && (
+        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'play' | 'leaderboard')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="play">Play Today's Puzzle</TabsTrigger>
+            <TabsTrigger value="leaderboard" className="flex items-center">
+              <Users className="w-4 h-4 mr-2" />
+              Leaderboard
+            </TabsTrigger>
+          </TabsList>          <TabsContent value="play" className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
                 <div className="space-y-6">
                   {!isAuthenticated ? (
                     <div className="text-center py-8">
                       <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         Sign in to Play Daily Puzzle
-                      </h3>
-                      <p className="text-gray-600">
+                      </h3>                      <p className="text-gray-600">
                         Create an account or sign in to play today's puzzle and compete on the leaderboard.
                       </p>
-                    </div>                  ) : dailyData?.userEntry?.completed ? (
+                    </div>
+                  ) : dailyData?.userEntry?.completed ? (
                     <div className="space-y-6">
                       {/* User's Best Result */}
                       <div className="text-center">
@@ -543,17 +517,21 @@ export function DailyPuzzleModal({ isOpen, onClose }: DailyPuzzleModalProps) {  
                             ))
                           )}
                         </div>
-                      </div>
-
-                      <div className="text-center text-sm text-gray-600">
+                      </div>                      <div className="text-center text-sm text-gray-600">
                         Left click to reveal • Right click to flag
                       </div>
                     </div>
                   ) : null}
                 </div>
-              )}
+            )}
+              </TabsContent>
 
-              {activeTab === 'leaderboard' && dailyData && (
+              <TabsContent value="leaderboard" className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : dailyData ? (
                 <div className="space-y-4">
                   <div className="text-center mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -619,15 +597,16 @@ export function DailyPuzzleModal({ isOpen, onClose }: DailyPuzzleModalProps) {  
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        </div>                      ))}
                     </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
+                  )}                </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Failed to load leaderboard</p>
+                  </div>
+                )}
+              </TabsContent>
+        </Tabs>
 
         {/* Footer */}
         <div className="flex justify-end p-4 border-t bg-gray-50">
@@ -635,7 +614,7 @@ export function DailyPuzzleModal({ isOpen, onClose }: DailyPuzzleModalProps) {  
             Close
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

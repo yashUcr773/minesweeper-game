@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { GameState, Difficulty } from '../types/game';
 import { getGameStats } from '../lib/storage';
 import { soundManager } from '../lib/sounds';
@@ -103,35 +105,20 @@ export const WinLossModal: React.FC<WinLossModalProps> = ({
   // Check if this is a new record
   const difficultyKey = difficulty as keyof typeof stats.bestTimes;
   const isNewRecord = isWin && difficulty !== Difficulty.CUSTOM && 
-    (stats.bestTimes[difficultyKey] === null || timeElapsed < stats.bestTimes[difficultyKey]!);
-  return (
-    <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <div 
-        className={`bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-500 ${
-          animationStage >= 1 ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-        }`}
-        onClick={(e) => e.stopPropagation()}
-      >
+    (stats.bestTimes[difficultyKey] === null || timeElapsed < stats.bestTimes[difficultyKey]!);  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={`max-w-md w-full transform transition-all duration-500 ${
+        animationStage >= 1 ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+      }`}>
         {/* Header */}
         <div className={`relative p-6 text-center ${
           isWin ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gradient-to-br from-red-500 to-rose-600'
-        } text-white rounded-t-2xl overflow-hidden`}>
-          {/* Background pattern */}
-          <div className="absolute inset-0 opacity-10">
+        } text-white rounded-t-2xl overflow-hidden -mx-6 -mt-6`}>
+          {/* Background pattern */}          <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-repeat" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
             }} />
           </div>
-            <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-all duration-200"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
 
           {/* Animated Emoji */}
           <div className={`text-6xl mb-4 transition-all duration-700 ${
@@ -304,11 +291,10 @@ export const WinLossModal: React.FC<WinLossModalProps> = ({
                     <span className="ml-1 capitalize">{diff}</span>
                   </Button>
                 ))}
-              </div>
-            )}
+              </div>            )}
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
